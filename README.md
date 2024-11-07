@@ -1,8 +1,8 @@
 # JFileShare
-JhttpFileShare is a straightforward application designed for local data exchange. It provides a simple interface for sharing 
+JFileShare is a straightforward application designed for local data exchange. It provides a simple interface for sharing 
 files across different devices within your network.
 
-This application will start a local server to access your directories and transfer files to other devices.
+> This application will start a local server to access your directories and transfer files to other devices.
 
 ## License
 This project is licensed under the **Apache 2.0** license.<br>
@@ -11,7 +11,7 @@ For more information about the license, see [apache.org](https://www.apache.org/
 or check the <b>LICENSE</b> file in the project
 
 ## Dependencies
-❤️ Thanks to all the great programmers out there, which made all of this possible
+❤️ Thanks to all the great projects, that helped in the development
 
 This project requires Java 11+ [SDK](https://www.oracle.com/java/technologies/downloads/)<br>
 All dependencies are managed by [Maven](https://maven.apache.org)<br>
@@ -38,14 +38,14 @@ JFileShare Server x.x.x
 USAGE:
 	java -jar JFileShare.jar [options/flags]
 
-	-help						Shows this help
-	-ip							Shows all Network Interfaces
+	-help					Shows this help
+	-ip					Shows all Network Interfaces
 
 FLAGS:
 	-v, -verbose				Enables verbose mode (more informations Server-side)
-	-n, -noroot					Disables the root directory restriction (Access entire file browser)
-	-u, -upload					Enables uploading to the host mashine
-	-h, -hidden					Also send informations about hidden files
+	-n, -noroot				Disables the root directory restriction (Access entire file browser)
+	-u, -upload				Enables uploading to the host mashine
+	-h, -hidden				Also send informations about hidden files
 	-ip=<network_name>			Sets the IP Address to the given network name [default: 0.0.0.0]
 	-p, -port=<port>			Sets the Port [default: 80]
 	-t, -threads=<size>			Sets the Thread Pool Size [default: 3]
@@ -58,10 +58,11 @@ Start the server with the following command:
 java -jar JFileShare.jar 
 ```
 The CLI will show you the IP Address and Port of the server. You can now access the server with any device in your local network.
-> ❕Disclaimer: I recommend to keep the default port, since you dont need to write it explicitly in the url.
+> ❕Disclaimer: I recommend to keep the default port, since you dont need to write it explicitly in the url
 
 If you are not sure about the IP Address of your server, you can use the `-ip` flag to show all available network interfaces
 and set the wanted Network Interface with the `-ip=<network_name>` option.
+> ❕Disclaimer: This is needed, if you want to use the server outside of the host system
 ```
 java -jar JFileShare.jar -ip=wlan0
 ```
