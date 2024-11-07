@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>JFileShare</title>
+    <!-- <link rel="icon" type="image/png" href="/media/favicon.png"> -->
+    <meta name="title" content="JFileShare" />
+    <meta name="description" content="JFileShare is a straightforward application designed for local data exchange" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --background: rgb(17,23,34);
+            --primary: rgb(28,37,49);
+            --select: rgb(55,65,81);
+            --light-primary: rgb(34,44,58);
+            --secondary: rgb(34,36,41);
+            --light-secondary: rgb(88,88,90);
+            --foreground: rgb(255,255,255);
+            --dark-foreground: rgb(156,163,175);
+            --darkest-foreground: rgb(46,53,65);
+            --accent: rgb(250,204,21);
+
+            --red: rgb(248,113,113);
+            --vibrant-red: rgb(239,68,68);
+            --dark-red: rgb(50,45,56);
+            --green: rgb(21,128,61);
+        }
+        body {
+            background-color: var(--background);
+
+            -webkit-user-select: none;  /* Chrome, Safari, Opera */
+            -moz-user-select: none;     /* Firefox */
+            -ms-user-select: none;      /* IE/Edge */
+            user-select: none;          /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .allow-select {
+            -webkit-user-select: text;  /* Chrome, Safari, Opera */
+            -moz-user-select: text;     /* Firefox */
+            -ms-user-select: text;      /* IE/Edge */
+            user-select: text;          /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .container * {
+            font-family: 'Roboto', Helvetica, sans-serif;
+        }
+
+        .header {
+            width: 90%;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .header-title {
+            font-size: 2.5em;
+            font-weight: 900;
+            color: var(--foreground);
+        }
+        .header-description {
+            font-size: 1em;
+            font-weight: 300;
+            color: var(--dark-foreground);
+        }
+
+        .section {
+            display: flex;
+            width: 90%;
+            gap: 10px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .file-browser {
+            width: 100%;
+            max-width: 400px;
+            max-height: 500px;
+            min-height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+
+            padding: 10px 0px 10px 0px;
+            background-color: var(--primary);
+            border-radius: 10px;
+
+            scrollbar-width: thin;
+            scrollbar-color: var(--light-primary) var(--primary);
+        }
+        .file-browser::-webkit-scrollbar {
+            width: 10px;
+        }
+        .file-browser::-webkit-scrollbar-thumb {
+            background-color: var(--select);
+            border-radius: 10px;
+        }
+        .file-browser::-webkit-scrollbar-track {
+            background-color: var(--primary);
+        }
+
+        .drive-browser {
+            width: 100%;
+            max-width: 400px;
+            height: clamp(120px, 120px, 120px);
+            overflow-y: auto;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+
+            background-color: var(--primary);
+            border-radius: 10px;
+
+            scrollbar-width: none;
+        }
+        .drive-browser-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: flex-start;
+            padding: 5px;
+        }
+        .diver {
+            position: relative;
+            width: calc(50% - 10px);
+            height: 60px;
+            display: flex;
+            overflow: hidden;
+            justify-content: flex-start;
+            align-items: center;
+            flex-direction: row;
+            background-color: var(--light-primary);
+            border-radius: 10px;
+            margin: 5px 5px 5px 5px;
+            transition: 0.25s ease;
+        }
+        .diver:hover {
+            transform: translateY(-2px);
+            background-color: var(--select);
+        }
+        .driver-info {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            margin-right: 5px;
+        }
+        .driver-name {
+            font-size: 0.8em;
+            font-weight: 500;
+            color: var(--foreground);
+        }
+        .driver-icon {
+            width: 30px;
+            height: 30px;
+            justify-content: center;
+            align-items: center;
+            padding: 0px 5px 0px 5px;
+        }
+        .driver-size {
+            font-size: 0.8em;
+            font-weight: 300;
+            color: var(--dark-foreground);
+        }
+        .driver-size-bar {
+            position: absolute;
+            left: 0px;
+            bottom: 0px;
+            width: 100%;
+            height: 5px;
+            background-color: var(--light-primary);
+        }
+        .driver-size-bar-fill {
+            width: 10%;
+            height: 100%;
+            background-color: var(--accent);
+            border-radius: 5px;
+        }
+
+        .upload {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            min-height: 30px;
+            display: none;
+            overflow: hidden;
+            justify-content: flex-start;
+            align-items: center;
+
+            background-color: var(--primary);
+            border-radius: 10px;
+        }
+
+        .upload label {
+            margin: 5px 5px 5px 0px;
+            color: var(--foreground);
+            font-size: 0.9em;
+            width: 100%;
+            text-align: left;
+            font-weight: 300;
+            word-break: break-all;
+        }
+        .upload .upload-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--select);
+            border-radius: 10px;
+            padding: 3px 4px 3px 5px;
+            margin-right: 10px;
+        }
+        .upload button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--select);
+            padding: 7px;
+            outline: none;
+            border: none;
+            color: var(--foreground);
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
+        .upload button:hover {
+            color: var(--accent);
+            text-shadow: 0px 0px 5px var(--accent);
+        }
+        .upload-left {
+            border-radius: 10px 0px 0px 10px;
+            margin-left: 5px
+        }
+        .upload-right {
+            border-radius: 0px 10px 10px 0px;
+        }
+
+        .working-directory {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            min-height: 30px;
+            display: flex;
+            overflow: hidden;
+            justify-content: flex-start;
+            align-items: center;
+
+            background-color: var(--primary);
+            border-radius: 10px;
+        }
+
+        .working-directory label {
+            margin: 5px 5px 5px 0px;
+            color: var(--foreground);
+            font-size: 0.9em;
+            font-weight: 500;
+            word-break: break-all;
+        }
+        .working-directory div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--select);
+            border-radius: 10px;
+            padding: 3px 4px 3px 5px;
+            margin-right: 10px;
+        }
+
+        .file {
+            position: relative;
+            width: 90%;
+            height: 40px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            overflow: hidden;
+            align-items: center;
+            padding: 5px 5px 5px 10px;
+            margin: 2px 10px 2px 10px;
+            border-radius: 5px;
+            background-color: var(--light-primary);
+            color: var(--foreground);
+            transition: 0.25s ease;
+        }
+        .file:hover {
+            transform: translateX(-5px);
+            background-color: var(--select);
+        }
+        .file-action {
+            position: absolute;
+            right: -90px;
+            height: 100%;
+            opacity: 0.5;
+            width: 110px;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            padding-left: 20px;
+            background-color: var(--light-primary);
+            transition: 0.25s ease;
+        }
+        .file-action:hover {
+            opacity: 0.8;
+            right: 0px;
+            padding-left: 0px;
+            background-color: var(--light-primary);
+        }
+        .file-action:hover .file-action-button {
+            cursor: pointer;
+            opacity: 1;
+            pointer-events: all;
+        }
+        .file-action-button {
+            opacity: 0;
+            margin-top: 3px;
+            width: 30px;
+            height: 30px;
+            color: var(--accent);
+            justify-content: center;
+            align-items: center;
+            transition: 0.25s ease;
+            pointer-events: none;
+        }
+        .file-action-button:hover {
+            filter: drop-shadow(0px 0px 5px currentColor);
+        }
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .file-name {
+            font-size: 1em;
+            font-weight: 500;
+        }
+        .file-size {
+            font-size: 0.8em;
+            font-weight: 300;
+        }
+        .file-last-modified {
+            font-size: 0.8em;
+            font-weight: 300;
+        }
+        .file-icon {
+            width: 30px;
+            height: 30px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .directory {
+            width: 90%;
+            height: 40px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            align-items: center;
+            padding: 5px 5px 5px 10px;
+            margin: 5px 10px 5px 10px;
+            color: var(--foreground);
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
+        .directory:hover {
+            transform: translateX(-5px);
+        }
+        .directory-name {
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .directory-icon {
+            width: 30px;
+            height: 30px;
+            justify-content: center;
+            align-items: center;
+        }
+        .footer {
+            width: 90%;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .copyright {
+            font-size: 0.8em;
+            font-weight: 300;
+            color: var(--accent);
+        }
+        .copyright-disclamer {
+            font-size: 0.8em;
+            font-weight: 300;
+            color: var(--light-primary);
+        }
+
+        .asset-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80px;
+            height: 20px;
+            background-color: var(--primary);
+            color: var(--foreground);
+            border-radius: 10px;
+            padding: 10px;
+            outline: none;
+            border: none;
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
+        .asset-button:hover {
+            color: var(--accent);
+            text-shadow: 0px 0px 5px var(--accent);
+        }
+        .assets {
+            display: none;
+            flex-direction: column;
+            padding-top: 10px;
+            gap: 5px;
+        }
+        .assets a {
+            text-decoration: none;
+            color: var(--dark-foreground);
+            transition: 0.25s ease;
+        }
+        .assets a:hover {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <label class="header-title">JFileShare</label>
+            <label class="header-description">Simple and fast local file sharing</label>
+        </div>
+        <div class="section">
+            <div class="drive-browser">
+                <div class="drive-browser-container" id="drive-browser">
+
+                </div>
+            </div>
+            <div class="upload" id="upload">
+                <div class="upload-image">
+                    <img src="/media/upload.png" style="width: 24px; height: 24px;">
+                </div>
+                <div style="display: flex; width: 100%; justify-content: flex-end; align-items: center; overflow: hidden">
+                    <label id="select-file"></label>
+                    <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect()">
+                    <button onclick="document.getElementById('fileInput').click()" class="upload-left">Select</button>
+                    <button onclick="uploadFile()" class="upload-right">Upload</button>
+                </div>
+            </div>
+            <div class="working-directory">
+                <div>
+                    <img src="/media/directory-open.png" style="width: 24px; height: 24px;">
+                </div>
+                <label id="working-directory"></label>
+            </div>
+            <div class="file-browser" id="file-browser">
+                <div class="directory">
+                    <div class="directory-icon"></div>
+                    <label class="directory-name">Directory Name</label>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <label class="copyright">© 2024 ShuraBlack</label>
+            <label class="copyright-disclamer">All rights reserved • V1.0</label>
+        </div>
+        <button class="asset-button" onclick='toggleAssets()'>Assets</button>
+        <div class="assets" id="assets" style="display: none">
+            <a href="https://www.flaticon.com/free-icons/pdf" title="pdf icons">Pdf icon [Dimitry Miroliubov - Flaticon]</a>
+            <a href="https://www.flaticon.com/free-icons/folder" title="folder icons">Folder icon [DinosoftLabs - Flaticon]</a>
+            <a href="https://www.flaticon.com/free-icons/back" title="back icons">Back icon [Smashicons - Flaticon]</a>
+            <a href="https://www.flaticon.com/free-icons/ui" title="ui icons">Ui icon [Adrly - Flaticon]</a>
+            <a href="https://www.flaticon.com/free-icons/cancel" title="cancel icons">Cancel icon [Stockio - Flaticon]</a>
+            <a href="https://www.flaticon.com/free-icons/open-folder" title="open folder icons">Open folder [kmg design - Flaticon]</a>
+            <a href="https://www.flaticon.com/free-icons/hdd" title="hdd icons">Hdd icon [FR_Media - Flaticon]</a>
+        </div>
+    </div>
+</body>
+<script>
+    async function fetchDirectory() {
+        try {
+            const response = await fetch("/dir", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "identifier": sessionId
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error:", error);
+            return null;
+        }
+    }
+
+    async function changeDirectory(dirName) {
+        try {
+            const response = await fetch("/dir?target=" + dirName, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "identifier": sessionId
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error:", error);
+            return null;
+        }
+    }
+
+    async function changeDirectoryAndApply(dirName) {
+        const result = await changeDirectory(dirName);
+        applyDirectory(result);
+    }
+
+    async function downloadFile(fileName) {
+        try {
+            const response = await fetch("/download?target=" + fileName, {
+                method: "GET",
+                headers: {
+                    "identifier": sessionId
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error("Error:", error);
+            return null;
+        }
+    }
+
+    async function deleteFile(fileName) {
+        try {
+            const response = await fetch("/delete?target=" + fileName, {
+                method: "DELETE",
+                headers: {
+                    "identifier": sessionId
+                }
+            });
+
+            if (!response.ok) {
+                return false;
+            }
+            return true;
+
+            return data;
+        } catch (error) {
+            console.error("Error:", error);
+            return false;
+        }
+    }
+
+
+    function applyDirectory(data) {
+        const workingDirectory = document.getElementById("working-directory");
+        const fileBrowser = document.getElementById("file-browser");
+
+        workingDirectory.innerHTML = `<label class="allow-select">${data.workingDirectory}</label>`;
+
+        fileBrowser.innerHTML = "";
+        if (data.back) {
+            fileBrowser.innerHTML += backElement();
+        }
+
+        data.files.forEach(file => {
+            if (file.type === "file") {
+                fileBrowser.innerHTML += jsonToFileElement(file);
+            } else if (file.type === "directory") {
+                fileBrowser.innerHTML += jsonToDirectoryElement(file);
+            }
+        });
+    }
+
+    async function popupOnDelete(source, filename) {
+        const userConfirmed = confirm(`Are you sure you want to delete '${filename}'?`);
+
+        if (userConfirmed) {
+            const result = await deleteFile(filename);
+            if (result) {
+                const entry = document.getElementById(filename);
+                // remove and delete entry
+                entry.style.opacity = 0;
+                setTimeout(() => {
+                    entry.remove();
+                }, 250);
+            }
+        }
+    }
+
+    function jsonToFileElement(data) {
+       return `
+            <div class="file" style="opacity: ${data.hidden ? 0.3 : 1}" id="${data.name}">
+                <div class="file-icon">
+                    <img src="/media/file.png" style="width: 90%; height: 90%; border-radius: 5px;">
+                </div>
+                <div class="file-info">
+                    <label class="file-name">${data.name}</label>
+                    <div style="color: var(--dark-foreground)">
+                        <label class="file-size">${data.size}</label>
+                        <span>-</span>
+                        <label class="file-last-modified">${data.lastModified}</label>
+                    </div>
+                </div>
+                <div class="file-action">
+                    <div class="file-action-button" style="color: var(--foreground)" onclick="downloadFile('${data.name}')">
+                        <img src="/media/download.png" style="width: 90%; height: 90%; border-radius: 5px;">
+                    </div>
+                    <div class="file-action-button" style="color: var(--vibrant-red)" onclick="popupOnDelete(this,'${data.name}')">
+                        <img src="/media/delete.png" style="width: 90%; height: 90%; border-radius: 5px;">
+                    </div>
+                </div>
+            </div>
+       `;
+    }
+    function jsonToDirectoryElement(data) {
+       return `
+           <div class="directory" style="opacity: ${data.hidden ? 0.3 : 1}" onclick="changeDirectoryAndApply('${data.name}')">
+                <div class="directory-icon">
+                    <img src="/media/directory.png" style="width: 90%; height: 90%; border-radius: 5px;">
+                </div>
+                <label class="directory-name">${data.name}</label>
+           </div>
+       `;
+    }
+
+    function backElement() {
+        return `
+            <div class="directory" onclick="changeDirectoryAndApply('$BACK')">
+                <div class="directory-icon">
+                    <img src="/media/back.png" style="width: 90%; height: 90%; border-radius: 5px;">
+                </div>
+                <label class="directory-name"></label>
+            </div>
+        `;
+    }
+
+    async function fetchDrivers() {
+        try {
+            const response = await fetch("/driver", {
+                method: "GET",
+                headers: {
+                    "identifier": sessionId
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error:", error);
+            return null;
+        }
+    }
+
+    function applyDriver(data) {
+        const driverBrowser = document.getElementById("drive-browser");
+
+        driverBrowser.innerHTML = "";
+
+        data.drivers.forEach(file => {
+            driverBrowser.innerHTML += jsonToDriverElement(file);
+        });
+    }
+
+    function jsonToDriverElement(data) {
+        const used = Math.round(data.usedSpace / data.totalSpace * 100);
+        return `
+            <div class="diver">
+                <div class="driver-icon">
+                    <img src="/media/drive.png" style="width: 90%; height: 90%; border-radius: 5px;">
+                </div>
+                <div class="driver-info">
+                    <label class="driver-name">${data.name}</label>
+                    <label class="driver-size">${bytesToSize(data.usedSpace)} / ${bytesToSize(data.totalSpace)}</label>
+                </div>
+                <div class="driver-size-bar">
+                    <div class="driver-size-bar-fill" style="width: ${used}%"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    function bytesToSize(bytes) {
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        if (bytes === 0) return '0 Byte';
+        const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+    }
+</script>
+<script>
+    var selectedFile;
+
+    function handleFileSelect() {
+        selectedFile = document.getElementById('fileInput').files[0];
+        if (selectedFile) {
+            document.getElementById("select-file").innerText = selectedFile.name;
+        }
+    }
+
+    async function uploadFile() {
+        if (!selectedFile) {
+            alert("You need to select a file first.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        try {
+            const response = await fetch("/upload", {
+                method: "POST",
+                headers: {
+                    "identifier": sessionId
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                alert("Successfully uploaded the file.");
+                applyDirectory(await fetchDirectory());
+                selectedFile = null;
+                document.getElementById("select-file").innerText = "";
+            } else {
+                alert("Failed to upload the file.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Failed to upload the file.");
+        }
+    }
+</script>
+<script>
+    var sessionId = null;
+
+    async function fetchSessionId() {
+        const local = localStorage.getItem("sessionData");
+        // load from local
+        if (local) {
+            const data = JSON.parse(local);
+            sessionId = data.identifier;
+            // Check if session ID is still valid on server
+            if (await checkSessionIdValidity()) {
+                if (new Date().getTime() > data.expirationTime) {
+                    console.log("Session ID expired. Requesting new session ID.");
+                    return refreshSessionId();
+                }
+                console.log("Session ID received from local storage. Expires at:", new Date(data.expirationTime));
+                return data;
+            }
+        }
+
+        try {
+            const response = await fetch("/session", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            const data = await response.json();
+            console.log("Session ID received. Expires at:", new Date(data.expirationTime));
+            localStorage.setItem("sessionData", JSON.stringify(data));
+            return data;
+        } catch (error) {
+            console.error("Error:", error);
+            return null;
+        }
+    }
+
+    async function refreshSessionId() {
+        try {
+            const response = await fetch("/session", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "identifier": sessionId
+                }
+            });
+            const data = await response.json();
+            console.log("Session ID refreshed. Expires at:", new Date(data.expirationTime));
+            localStorage.setItem("sessionData", JSON.stringify(data));
+            return data;
+        } catch (error) {
+            console.error("Error:", error);
+            return null;
+        }
+    }
+
+    async function checkSessionIdValidity() {
+        try {
+            const response = await fetch("/session", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "identifier": sessionId
+                }
+            });
+
+            const data = await response.json();
+
+            return data.valid;
+        } catch (error) {
+            console.error("Error:", error);
+            return false;
+        }
+    }
+
+    function toggleAssets() {
+        const assets = document.getElementById("assets");
+        if (assets.style.display === "none") {
+            assets.style.display = "flex";
+        } else {
+            assets.style.display = "none";
+        }
+    }
+
+    window.onload = async function() {
+        var sessionData = await fetchSessionId();
+        sessionId = sessionData.identifier;
+        if (sessionData.uploadAllowed) {
+            document.getElementById("upload").style.display = "flex";
+        }
+        var expirationTime = sessionData.expirationTime;
+        applyDirectory(await fetchDirectory());
+        applyDriver(await fetchDrivers());
+
+        setInterval(async function() {
+            var currentTime = new Date().getTime();
+            var remainingTime = expirationTime - currentTime;
+            if (remainingTime <= 30000) {
+                var sessionRefresh = await refreshSessionId();
+                sessionId = sessionRefresh.identifier;
+                expirationTime = sessionRefresh.expirationTime;
+            }
+        }, 30000);
+    }
+</script>
+</html>
