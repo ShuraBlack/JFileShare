@@ -57,7 +57,7 @@ public class Server {
         LOGGER.info("Starting server...");
         System.out.println(
                 "==================================================================================\n"
-              + "= JFileShare - Version 0.1.0                                                     =\n"
+              + "= JFileShare - Version 0.1.1                                                     =\n"
                         + "= Written by ShuraBlack                                                          =\n"
                         + "==================================================================================\n"
                         + Config.getProperties() + "\n"

@@ -192,7 +192,7 @@ public class ArgInterpreter {
      * Prints out the help.
      */
     private static void interpretHelp() {
-        LOGGER.info("\nJFileShare Server 0.1.0\n\n" +
+        LOGGER.info("\nJFileShare Server 0.1.1\n\n" +
                 "USAGE:\n\tjava -jar JFileShare.jar [options/flags]\n\n" +
                 "\t-help\t\t\t\t\t\tShows this help\n" +
                 "\t-ip\t\t\t\t\t\t\tShows all Network Interfaces\n\n" +

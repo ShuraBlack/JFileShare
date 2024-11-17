@@ -5,6 +5,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -98,8 +100,19 @@ public class Request {
         String dataString = data.toString();
         addResponseHeader("Content-Type", "application/json");
         try {
-            origin.sendResponseHeaders(code, dataString.length());
-            origin.getResponseBody().write(dataString.getBytes());
+            origin.sendResponseHeaders(code, 0);
+
+            try (BufferedOutputStream out = new BufferedOutputStream(origin.getResponseBody())) {
+                try (ByteArrayInputStream bis = new ByteArrayInputStream(dataString.getBytes())) {
+                    byte[] buffer = new byte[1024];
+                    int count;
+                    while ((count = bis.read(buffer)) != -1) {
+                        out.write(buffer, 0, count);
+                    }
+                    out.close();
+                }
+
+            }
             origin.close();
         } catch (Exception e) {
             LOGGER.error("Error while sending response", e);

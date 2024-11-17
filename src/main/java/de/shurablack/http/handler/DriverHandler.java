@@ -33,6 +33,11 @@ public class DriverHandler extends RequestHandler {
         FileSystem fileSystem = FileSystems.getDefault();
         try {
             for (FileStore store : fileSystem.getFileStores()) {
+                // if size is smaller than 1GB, ignore
+                if (store.getTotalSpace() < 1024 * 1024 * 1024) {
+                    continue;
+                }
+
                 DRIVERS.add(new LocalDriverData(
                         store.toString(),
                         store.getTotalSpace(),
